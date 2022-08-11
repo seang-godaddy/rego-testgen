@@ -6,8 +6,12 @@ Something out there probably already exists but I'm here to make a worse version
 
 ## TODO LIST:
 - get working the base version
-- function to convert policy to object
+  - backfill conditions
+  - get input from caller
 - restrict main branch pushing privileges once 1.0 is out
+- get error handling on unsafe code
+- get rid of global vars
+- unit tests???
 
 ## Usage
 You have a policy as such
