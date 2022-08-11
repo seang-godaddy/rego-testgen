@@ -79,7 +79,7 @@ type node struct {
 	nextNode    *node
 }
 type policy struct {
-	firstNode  node
+	firstNode  *node
 	nextPolicy *policy
 }
 
@@ -103,7 +103,7 @@ func overwriteTestName(nodeName, testName string, mode bool) string {
 }
 
 func analyzePolicy(p policy, test, testName string, activeConditions map[string]bool) {
-	currentTest, testName, nextPolicy, newActiveConditions := analyzeNode(&p.firstNode, test, testName, activeConditions)
+	currentTest, testName, nextPolicy, newActiveConditions := analyzeNode(p.firstNode, test, testName, activeConditions)
 	if nextPolicy && p.nextPolicy != nil {
 		analyzePolicy(*p.nextPolicy, currentTest, testName, newActiveConditions)
 	}
