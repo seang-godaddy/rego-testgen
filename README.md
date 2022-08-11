@@ -7,7 +7,7 @@ Something out there probably already exists but I'm here to make a worse version
 ## TODO LIST:
 - get working the base version
 - function to convert policy to object
-
+- restrict main branch pushing privileges once 1.0 is out
 
 ## Usage
 You have a policy as such

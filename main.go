@@ -99,7 +99,7 @@ func overwriteTestName(nodeName, testName string, mode bool) string {
 	if len(newNodeName) <= 1 {
 		return ""
 	}
-	return fmt.Sprintf("%s_%s_%t", testName, nodeName, mode)
+	return fmt.Sprintf("_%s_%s_%t", testName, nodeName, mode)
 }
 
 func analyzePolicy(p policy, test, testName string, activeConditions map[string]bool) {
@@ -158,7 +158,7 @@ func finishNamingTest(testName, finalNodeName string, mode bool) string {
 		authzExpected = "not_authz"
 	}
 
-	testName = fmt.Sprintf("test_%s_%s_%s", authzExpected, overwriteTestName(finalNodeName, testName, mode), authzResult)
+	testName = fmt.Sprintf("test_%s%s_%s", authzExpected, overwriteTestName(finalNodeName, testName, mode), authzResult)
 	newTestName := testName
 	if testsAlreadyNamed[testName] != 0 {
 		newTestName = fmt.Sprintf("%s_%d", testName, testsAlreadyNamed[testName])
