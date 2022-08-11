@@ -108,6 +108,7 @@ func analyzePolicy(p policy, test, testName string, activeConditions map[string]
 		analyzePolicy(*p.nextPolicy, currentTest, testName, newActiveConditions)
 	}
 	// todo: backfill all conditions that aren't there
+	// ie if 4/6 conditions have been added by end of current test, add versions with the other 2/6 in every permutation of true/false
 
 	// print test
 	fmt.Printf(`%s {
