@@ -1,36 +1,45 @@
 package main
 
-import "strings"
+import (
+	"fmt"
+	"strings"
+)
 
 // for now, no empty lines or comments allowed
 
-func convertPolicy(s string) policy {
+func ConvertPolicy(s string) regoPolicy {
 	lines := strings.Split(s, "\n")
 	return createPolicy(nil, lines)
 }
 
-func createPolicy(p *policy, lines []string) policy {
+func createPolicy(p *regoPolicy, lines []string) regoPolicy {
 	if p == nil {
-		p = &policy{}
+		p = &regoPolicy{}
 	}
 
 	for index := range lines {
-		if strings.ContainsAny(lines[index], "else") {
-			createPolicy(p.nextPolicy, lines[index+1:])
+		//fmt.Println("\nassessing line: ", strings.TrimSpace(lines[index]))
+		if strings.Contains(lines[index], "else") {
+			//fmt.Println("countered else")
+			newPolicy := createPolicy(p.nextPolicy, lines[index+1:])
+			p.nextPolicy = &newPolicy
 			break
 		}
 		if strings.ContainsAny(lines[index], "{}") {
+			//fmt.Println("encountered skip line")
 			continue
 		}
 		testCondition := strings.TrimSpace(lines[index])
-		fillInNode(p.firstNode, testCondition)
+		p.firstNode = fillInNode(p.firstNode, testCondition)
 	}
 
 	return *p
 }
 
-func fillInNode(n *node, s string) {
+func fillInNode(n *node, s string) *node {
+	//fmt.Println("working on current node: ", n)
 	if n == nil {
+		//fmt.Println("empty node encountered")
 		var exclude bool
 		if strings.Contains(s, "not") {
 			splitCondition := strings.Split(s, " ")
@@ -43,9 +52,30 @@ func fillInNode(n *node, s string) {
 			excludeNode: exclude,
 			nextNode:    nil,
 		}
-		return
+		//fmt.Printf("filling new node: %+v\n", n)
+		return n
 	}
-	if n.nextNode == nil {
-		fillInNode(n.nextNode, s)
+	//fmt.Println("filling in next node")
+	n.nextNode = fillInNode(n.nextNode, s)
+	return n
+	// only checks first and second nodes currently
+}
+
+func printPolicy(p regoPolicy) {
+	fmt.Printf("%+v\n", p)
+	if p.firstNode != nil {
+		printNextNodes(p.firstNode)
+	}
+	if p.nextPolicy != nil {
+		printPolicy(*p.nextPolicy)
+	}
+}
+
+func printNextNodes(n *node) {
+	if n != nil {
+		fmt.Printf("%+v\n", n)
+	}
+	if n.nextNode != nil {
+		printNextNodes(n.nextNode)
 	}
 }

@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strings"
 )
 
 type node struct {
@@ -9,28 +10,22 @@ type node struct {
 	excludeNode bool
 	nextNode    *node
 }
-type policy struct {
+type regoPolicy struct {
 	firstNode  *node
-	nextPolicy *policy
+	nextPolicy *regoPolicy
 }
 
-func startPolicyWriting(p policy) {
+func StartPolicyWriting(p regoPolicy) {
 	var test, testName string
-	var activeConditions = make(map[string]bool)
+	var activeConditions = make(map[string]bool, 0)
 	analyzePolicy(p, test, testName, activeConditions)
 }
 
-func analyzePolicy(p policy, test, testName string, activeConditions map[string]bool) {
+func analyzePolicy(p regoPolicy, test, testName string, activeConditions map[string]bool) {
 	currentTest, testName, nextPolicy, newActiveConditions := analyzeNode(p.firstNode, test, testName, activeConditions)
 	if nextPolicy && p.nextPolicy != nil {
 		analyzePolicy(*p.nextPolicy, currentTest, testName, newActiveConditions)
 	}
-	// todo: backfill all conditions that aren't there
-	// ie if 4/6 conditions have been added by end of current test, add versions with the other 2/6 in every permutation of true/false
-	// print test - move to backfill func or call at end of it
-	fmt.Printf(`%s {
-		%s
-	}\n`, testName, currentTest)
 }
 
 // returns are test, and move to next policy
@@ -39,10 +34,12 @@ func analyzeNode(n *node, test, testName string, activeConditions map[string]boo
 	for _, mode := range modes {
 		currentTest := test
 		currentTestName := testName
-		currentActiveConditions := activeConditions
+		currentActiveConditions := newMapCopy(activeConditions)
+		//fmt.Printf("\nThe current thing: '%s' : '%s' : '%+v'", currentTest, currentTestName, currentActiveConditions)
 
 		// if condition has already been written in test, skip (done for backlog test filling)
-		if !currentActiveConditions[n.name] {
+		if _, found := currentActiveConditions[n.name]; !found {
+			// todo: map doesnt get duplicated
 			currentTest = overwriteTestConditions(test, n.name, mode)
 			currentActiveConditions[n.name] = true
 		}
@@ -50,18 +47,53 @@ func analyzeNode(n *node, test, testName string, activeConditions map[string]boo
 		if n.nextNode != nil {
 			if !mode {
 				// go to next policy
-				currentTestName = overwriteTestName(n.name, testName, mode)
+				currentTestName = overwriteTestName(n.name, currentTestName, mode)
 				return currentTest, currentTestName, true, currentActiveConditions
 			}
 			// go to next node
-			analyzeNode(n, test, testName, activeConditions)
+			analyzeNode(n.nextNode, test, testName, activeConditions)
 		}
 		// no more nodes. end of current policy
-
 		// finish naming test
-		currentTestName = finishNamingTest(currentTestName, n.name, mode)
-		return currentTest, currentTestName, false, currentActiveConditions
+		currentTestName, expectedResult := finishNamingTest(currentTestName, n.name, mode)
+		backfillNodes(currentTest, currentTestName, expectedResult, activeConditions)
 	}
 	// nothing
 	return "", "", false, nil
+}
+
+func backfillNodes(test, testName, expectedResult string, activeConditions map[string]bool) {
+	glob++
+	fmt.Println("\nbackfill called", glob)
+	var visited int
+	for condition, added := range activeConditions {
+		if !added {
+			var modes = []bool{true, false}
+			activeConditions[condition] = true
+			for _, mode := range modes {
+				overwriteTest(test, condition, mode)
+				backfillNodes(test, testName, expectedResult, activeConditions)
+			}
+		} else {
+			visited++
+		}
+	}
+	notAuthzSplit := strings.Split(expectedResult, "_")
+	resultRejoin := strings.Join(notAuthzSplit, " ")
+	if visited == len(activeConditions) {
+		fmt.Println("")
+		fmt.Printf(`%s {
+			%s%s
+		}`, testName, resultRejoin, test)
+	}
+}
+
+var glob int
+
+func newMapCopy(original map[string]bool) map[string]bool {
+	target := make(map[string]bool, len(original))
+	for key, value := range original {
+		target[key] = value
+	}
+	return target
 }

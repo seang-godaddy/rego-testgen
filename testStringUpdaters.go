@@ -8,7 +8,7 @@ import (
 var testsAlreadyNamed = make(map[string]int)
 
 func overwriteTestConditions(test, testCondition string, mode bool) string {
-	return fmt.Sprintf("%s \n\t with %s as %t \n", test, testCondition, mode)
+	return fmt.Sprintf("%s with %s as %t", test, testCondition, mode)
 }
 
 func overwriteTestName(nodeName, testName string, mode bool) string {
@@ -16,10 +16,10 @@ func overwriteTestName(nodeName, testName string, mode bool) string {
 	if len(newNodeName) <= 1 {
 		return ""
 	}
-	return fmt.Sprintf("_%s_%s_%t", testName, nodeName, mode)
+	return fmt.Sprintf("%s_%s_%t", testName, nodeName, mode)
 }
 
-func finishNamingTest(testName, finalNodeName string, mode bool) string {
+func finishNamingTest(testName, finalNodeName string, mode bool) (string, string) {
 	authzResult := "pass"
 	authzExpected := "authz"
 
@@ -35,5 +35,5 @@ func finishNamingTest(testName, finalNodeName string, mode bool) string {
 	}
 	testsAlreadyNamed[testName]++
 
-	return newTestName
+	return newTestName, authzExpected
 }
