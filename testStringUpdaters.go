@@ -12,9 +12,9 @@ func overwriteTestConditions(test, testCondition string, mode bool) string {
 }
 
 func overwriteTestName(nodeName, testName string, mode bool) string {
-	newNodeName := strings.Split(nodeName, ".")
-	if len(newNodeName) <= 1 {
-		return ""
+	splitNodeName := strings.Split(nodeName, ".")
+	if len(splitNodeName) > 1 {
+		nodeName = splitNodeName[1]
 	}
 	return fmt.Sprintf("%s_%s_%t", testName, nodeName, mode)
 }
@@ -28,6 +28,7 @@ func finishNamingTest(testName, finalNodeName string, mode bool) (string, string
 		authzExpected = "not_authz"
 	}
 
+	// todo fix naming of test period in hbi.isblah
 	testName = fmt.Sprintf("test_%s%s_%s", authzExpected, overwriteTestName(finalNodeName, testName, mode), authzResult)
 	newTestName := testName
 	if testsAlreadyNamed[testName] != 0 {

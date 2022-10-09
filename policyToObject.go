@@ -79,3 +79,27 @@ func printNextNodes(n *node) {
 		printNextNodes(n.nextNode)
 	}
 }
+
+func makeNodeMap(p regoPolicy) map[string]bool {
+	policyMap := make(map[string]bool)
+	fillInPolicyMap(&p, policyMap)
+	return policyMap
+}
+
+func fillInPolicyMap(p *regoPolicy, nodeMap map[string]bool) {
+	if p.firstNode != nil {
+		fillInNodeMap(p.firstNode, nodeMap)
+	}
+	if p.nextPolicy != nil {
+		fillInPolicyMap(p.nextPolicy, nodeMap)
+	}
+}
+
+func fillInNodeMap(n *node, nodeMap map[string]bool) {
+	if n != nil {
+		nodeMap[n.name] = false
+	}
+	if n.nextNode != nil {
+		fillInNodeMap(n.nextNode, nodeMap)
+	}
+}
